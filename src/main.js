@@ -4,6 +4,7 @@ import { SplitText } from 'gsap/SplitText';
 import Lenis from 'lenis';
 import { experience } from './experience.js';
 import { testimonials } from './testimonials.js';
+import { services } from './services.js';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -44,10 +45,12 @@ if (journeyList) {
     </li>`).join('');
 
   const entries = Array.from(journeyList.querySelectorAll('.jentry'));
+  const markers = entries.map((e) => e.querySelector('.jentry__marker'));
   const fill = document.getElementById('journeyFill');
   const bar = document.getElementById('journeyBar');
+  const rail = journeyList.parentElement; // .journey__rail
+  const orb = rail.querySelector('.journey__orb');
   const lastEntry = entries[entries.length - 1];
-
   function updateJourney() {
     const rect = journeyList.getBoundingClientRect();
     const center = window.innerHeight * 0.5;
@@ -58,17 +61,45 @@ if (journeyList) {
     fill.style.width = `${(p * 100).toFixed(2)}%`;
     bar.setAttribute('aria-valuenow', String(Math.round(p * 100)));
 
-    // Active entry: the one whose center is closest to the viewport center.
-    // Deterministic (always exactly one active), and unlike an observer band
-    // it can't skip the first/last entries at the scroll extremes.
+    // Orb rides the FULL line, its vertical position tied to where the viewport
+    // centre crosses the timeline — so it keeps travelling past the last marker,
+    // down the remaining line. When it nears a node it docks sideways onto the
+    // marker (x≈13) and lights it; once it moves past, it slides back onto the
+    // line (x≈6.5) and the marker it passed stays lit.
+    const railBox = rail.getBoundingClientRect();
+    const railTop = railBox.top;
+    const inset = 0.6 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const markerY = markers.map((m) => {
+      const r = m.getBoundingClientRect();
+      return r.top + r.height / 2 - railTop;
+    });
+    const orbY = Math.min(railBox.height - inset, Math.max(inset, center - railTop));
+
     let best = 0;
     let bestDist = Infinity;
-    entries.forEach((el, i) => {
-      const r = el.getBoundingClientRect();
-      const dist = Math.abs(r.top + r.height / 2 - center);
+    markerY.forEach((y, i) => {
+      const dist = Math.abs(y - orbY);
       if (dist < bestDist) { bestDist = dist; best = i; }
     });
-    entries.forEach((el, i) => el.classList.toggle('is-active', i === best));
+
+    const DOCK_ZONE = 18; // px: how close (vertically) before the orb docks
+    const docked = bestDist <= DOCK_ZONE;
+    if (orb) {
+      orb.style.top = `${orbY.toFixed(1)}px`;
+      if (docked) {
+        const b = markers[best].getBoundingClientRect();
+        orb.style.left = `${(b.left + b.width / 2 - railBox.left).toFixed(1)}px`;
+      } else {
+        orb.style.left = '6.5px';
+      }
+    }
+
+    // The nearest entry stays readable (is-active); markers light cumulatively
+    // (is-lit) — every one the orb has reached stays lit.
+    entries.forEach((el, i) => {
+      el.classList.toggle('is-active', i === best);
+      el.classList.toggle('is-lit', orbY >= markerY[i] - DOCK_ZONE);
+    });
   }
   window.addEventListener('scroll', updateJourney, { passive: true });
   window.addEventListener('resize', updateJourney);
@@ -104,6 +135,13 @@ if (radial) {
     svg.append(base, dash, dot);
     return { li, card: li.querySelector('.rmodule__card'), base, dash, dot, from: { x: 0, y: 0 }, to: { x: 0, y: 0 } };
   });
+
+  // Keep the Qualified Meetings connector as the hero's primary signal.
+  const primaryConn = conns[conns.length - 1];
+  primaryConn.base.classList.add('radial__line--primary');
+  primaryConn.dash.classList.add('radial__dash--primary');
+  primaryConn.dash.style.stroke = ''; // let the CSS class color it
+  primaryConn.dot.style.fill = '#d6336c';
 
   function layoutRadial() {
     if (getComputedStyle(svg).display === 'none') return; // stacked mobile layout
@@ -220,6 +258,22 @@ if (radial) {
     c.card.addEventListener('focus', on);
     c.card.addEventListener('blur', off);
   });
+
+  // As the hero leaves, the secondary connectors recede so the primary
+  // outcome remains the visual anchor.
+  if (!prefersReduced) {
+    const secondary = conns.slice(0, -1).flatMap((c) => [c.base, c.dash]);
+    gsap.to(secondary, {
+      opacity: 0.15,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.hero',
+        start: 'top top',
+        end: 'bottom 60%',
+        scrub: true,
+      },
+    });
+  }
 }
 
 /* ================= THREE.JS HERO ================= */
@@ -513,38 +567,184 @@ if (tRows.length) {
   }
 }
 
-/* ================= SERVICES ACCORDION ================= */
-document.querySelectorAll('[data-service]').forEach((service) => {
-  const row = service.querySelector('.service__row');
-  const body = service.querySelector('.service__body');
-  row.addEventListener('click', () => {
-    const isOpen = service.classList.contains('is-open');
-    // close others
-    document.querySelectorAll('[data-service].is-open').forEach((other) => {
-      if (other !== service) {
-        other.classList.remove('is-open');
-        if (!animDead) gsap.to(other.querySelector('.service__body'), { height: 0, duration: 0.45, ease: 'power3.inOut' });
+/* ================= SERVICES (data-driven beats) ================= */
+// Rendered from src/services.js into the cinema panels. Runs unconditionally
+// so the beats exist for both the scroll choreography (below) and the static
+// reduced-motion fallback (handled in CSS).
+const servicesPanels = document.getElementById('servicesPanels');
+if (servicesPanels) {
+  servicesPanels.insertAdjacentHTML('beforeend', services.map((s, i) => `
+    <article class="service-beat service-beat--${s.side}" data-service-beat="${i + 1}">
+      <div class="service-beat__card">
+        <span class="service-beat__num">${s.num}</span>
+        <p class="service-beat__tag">${s.tag}</p>
+        <h3>${s.title}</h3>
+        <p>${s.text}</p>
+      </div>
+    </article>`).join(''));
+}
+
+if (!prefersReduced) {
+  const servicesCinema = document.getElementById('servicesCinema');
+  if (servicesCinema) {
+    const serviceMedia = document.getElementById('servicesMedia');
+    const serviceShade = document.getElementById('servicesShade');
+    const serviceImages = gsap.utils.toArray('[data-service-image]');
+    const serviceCards = gsap.utils.toArray('.service-beat__card');
+    const firstServiceCard = serviceCards[0];
+    const serviceIntro = document.getElementById('servicesIntroTitle');
+    const narrow = () => window.matchMedia('(max-width: 720px)').matches;
+    // Flip completes when the card has scrolled up to this fraction of the
+    // viewport (0.35 = 35% from the top). Tweak to re-time the flip vs. text.
+    const FLIP_END = 'top 35%';
+    const FLIP_START = 'top 80%';
+
+    const serviceDock = () => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      if (narrow()) {
+        return {
+          top: vh * 0.1,
+          left: vw * 0.08,
+          width: vw * 0.84,
+          height: Math.min(vh * 0.34, vw * 0.78),
+          borderRadius: 22,
+        };
       }
+      const size = Math.min(vw * 0.34, vh * 0.64);
+      return {
+        top: (vh - size) / 2,
+        left: vw * 0.58,
+        width: size,
+        height: size,
+        borderRadius: 28,
+      };
+    };
+
+    gsap.set(serviceImages, { autoAlpha: 0, scale: 1.04, zIndex: 0 });
+    gsap.set(serviceImages[0], { autoAlpha: 1, scale: 1.035, zIndex: 1 });
+    if (firstServiceCard) gsap.set(firstServiceCard, { autoAlpha: 0, y: 42, scale: 0.97 });
+    gsap.set(serviceMedia, {
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      rotationY: 0,
+      transformPerspective: 1600,
+      borderRadius: 0,
+      transformOrigin: '50% 50%',
     });
-    service.classList.toggle('is-open', !isOpen);
-    if (animDead) return; // .anim-dead CSS handles open/close instantly
-    gsap.to(body, {
-      height: isOpen ? 0 : 'auto',
-      duration: 0.55,
-      ease: 'power3.inOut',
-      onComplete: () => ScrollTrigger.refresh(),
+
+    const servicesTl = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: {
+        trigger: servicesCinema,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 1,
+        invalidateOnRefresh: true,
+        // Only promote the animated layers to their own compositor layer while
+        // the section is actually being scrubbed (see .is-live in style.css),
+        // instead of leaving will-change on for the life of the page.
+        onToggle: (self) => servicesCinema.classList.toggle('is-live', self.isActive),
+      },
     });
-  });
-  if (!prefersReduced) {
-    gsap.from(service, {
+    servicesTl
+      .to(serviceIntro, { autoAlpha: 0, y: -42, duration: 0.42 }, 0.38)
+      .to(serviceMedia, {
+        top: () => serviceDock().top,
+        left: () => serviceDock().left,
+        width: () => serviceDock().width,
+        height: () => serviceDock().height,
+        borderRadius: () => serviceDock().borderRadius,
+        duration: 0.95,
+      }, 0.12)
+      .to(serviceShade, { opacity: 0.44, duration: 0.85 }, 0.24)
+      .to(serviceImages[0], { autoAlpha: 0, scale: 1.02, duration: 0.35 }, 0.88)
+      .fromTo(serviceImages[1],
+        { autoAlpha: 0, scale: 1.08, rotationY: 0, zIndex: 3 },
+        { autoAlpha: 1, scale: 1.035, duration: 0.45 },
+        0.88)
+      .call(() => {
+        serviceImages.forEach((img, imageIndex) => {
+          img.classList.toggle('is-active', imageIndex === 1);
+          gsap.set(img, { autoAlpha: imageIndex === 1 ? 1 : 0, zIndex: imageIndex === 1 ? 1 : 0 });
+        });
+      }, null, 1.08)
+      .set({}, {}, 4.4);
+
+    // Fixed counter-rotations so every service image renders upright at its own
+    // rest angle while the shared media plane accumulates 180° per flip
+    // (image i rests when the plane is at (i-1)*180°).
+    [1, 2, 3, 4].forEach((i) => gsap.set(serviceImages[i], { rotationY: -(i - 1) * 180 }));
+
+    // Scroll-linked image flips for beats 2–4. Each transition rotates the media
+    // plane 180° and cross-fades prev → next. Scrubbed, so it tracks scroll
+    // exactly (no snap on slow scroll), reverses when you scroll back up, and
+    // completes when the card reaches FLIP_END (35% of the viewport).
+    // immediateRender:false + a pinned fromTo start keep the rotation continuous
+    // across flip boundaries (flip N ends where flip N+1 begins).
+    [2, 3, 4].forEach((index) => {
+      const prevImg = serviceImages[index - 1];
+      const nextImg = serviceImages[index];
+      const card = serviceCards[index - 1]; // serviceCards[0] is beat 1's card
+      if (!prevImg || !nextImg || !card) return;
+      const startRotation = (index - 2) * 180; // image 1 rests at 0°
+      const targetRotation = startRotation + 180;
+
+      gsap.timeline({
+        defaults: { ease: 'none', immediateRender: false },
+        scrollTrigger: {
+          trigger: card,
+          start: FLIP_START,
+          end: FLIP_END,
+          scrub: true,
+          invalidateOnRefresh: true,
+        },
+      })
+        .set(serviceMedia, { transformPerspective: 1600, transformOrigin: '50% 50%' }, 0)
+        .fromTo(serviceMedia, { rotationY: startRotation }, { rotationY: targetRotation, duration: 1 }, 0)
+        .to(serviceMedia, { z: -70, scale: 0.965, duration: 0.5, ease: 'power2.in' }, 0)
+        .to(serviceMedia, { z: 0, scale: 1, duration: 0.5, ease: 'power2.out' }, 0.5)
+        .to(prevImg, { autoAlpha: 0, duration: 0.24 }, 0.38)
+        .fromTo(nextImg, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.24 }, 0.38);
+    });
+
+    gsap.from(serviceIntro, {
       autoAlpha: 0,
-      y: 50,
-      duration: 0.8,
+      y: 40,
+      duration: 1,
       ease: 'power3.out',
-      scrollTrigger: { trigger: service, start: 'top 92%' },
+      scrollTrigger: { trigger: '.service-beat--intro', start: 'top 70%' },
+    });
+    if (firstServiceCard) {
+      gsap.to(firstServiceCard, {
+        autoAlpha: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.65,
+        delay: 0.18,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: firstServiceCard,
+          start: 'top 82%',
+          toggleActions: 'play none none reverse',
+        },
+      });
+    }
+    serviceCards.slice(1).forEach((card) => {
+      gsap.from(card, {
+        autoAlpha: 0,
+        y: 42,
+        scale: 0.97,
+        duration: 0.85,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: card, start: 'top 82%' },
+      });
     });
   }
-});
+
+}
 
 /* ================= PROCESS: horizontal scroll (desktop) ================= */
 const processTrack = document.getElementById('processTrack');
@@ -568,6 +768,7 @@ if (processTrack && isDesktop && !prefersReduced) {
       invalidateOnRefresh: true,
     },
   });
+
 } else if (processTrack && !prefersReduced) {
   gsap.utils.toArray('.pcard').forEach((card) => {
     gsap.from(card, {
@@ -642,7 +843,11 @@ if (pipeline && !prefersReduced) {
     transformOrigin: '50% 50%',
   });
   gsap.set(introImage, { autoAlpha: 1 });
-  gsap.set([portraitImage, finalImage], { autoAlpha: 1 });
+  gsap.set(portraitImage, { autoAlpha: 1 });
+  // The final landscape is revealed explicitly at the flip (see below). It stays
+  // hidden until then instead of relying on 3D backface culling, which fails once
+  // the flipping layer is composited (preserve-3d gets flattened).
+  gsap.set(finalImage, { autoAlpha: 0 });
   gsap.set(bio, { autoAlpha: 0, y: 38 });
   gsap.set(card, { autoAlpha: 0, y: 42, scale: 0.96 });
   let aboutWords = [];
@@ -726,6 +931,13 @@ if (pipeline && !prefersReduced) {
       borderRadius: 0,
       duration: 0.65,
     }, 2.55)
+    // As the card passes edge-on (~-90deg) swap the portrait for the final
+    // landscape via opacity. z-index and backface-visibility can't decide this
+    // (the preserve-3d context is flattened once the layer is composited), so the
+    // handoff is driven explicitly. finalImage keeps its rotateY(180deg) so the
+    // container's -180deg flip cancels out and it reads un-mirrored.
+    .to(portraitImage, { autoAlpha: 0, duration: 0.2 }, 2.62)
+    .to(finalImage, { autoAlpha: 1, duration: 0.2 }, 2.62)
     .to(card, { autoAlpha: 1, y: 0, scale: 1, duration: 0.5, ease: 'power3.out' }, 3.08)
     .set({}, {}, 3.65);
 
@@ -837,9 +1049,6 @@ function degradeToStatic() {
   skipIntro();
   document.querySelectorAll('[data-count]').forEach((el) => {
     el.textContent = Number(el.dataset.count).toLocaleString('en-US');
-  });
-  document.querySelectorAll('[data-service] .service__body').forEach((el) => {
-    el.style.height = '';
   });
   gsap.ticker.remove(lenisRaf);
   lenis?.destroy();

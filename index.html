@@ -150,8 +150,8 @@
         <!-- ======= MARQUEE ======= -->
         <div class="marquee" aria-hidden="true">
           <div class="marquee__track" data-marquee>
-            <span>Lead Generation <i>✦</i> Appointment Setting <i>✦</i> Cold Email <i>✦</i> B2B Prospecting <i>✦</i> CRM Management <i>✦</i>&nbsp;</span>
-            <span>Lead Generation <i>✦</i> Appointment Setting <i>✦</i> Cold Email <i>✦</i> B2B Prospecting <i>✦</i> CRM Management <i>✦</i>&nbsp;</span>
+            <span>Lead Generation <i></i> Appointment Setting <i></i> Cold Email <i></i> B2B Prospecting <i></i> CRM Management <i></i>&nbsp;</span>
+            <span>Lead Generation <i></i> Appointment Setting <i></i> Cold Email <i></i> B2B Prospecting <i></i> CRM Management <i></i>&nbsp;</span>
           </div>
         </div>
 
@@ -200,64 +200,32 @@
 
         <!-- ======= SERVICES ======= -->
         <section class="services" id="services">
-          <div class="section-head">
-            <span class="section-head__num">03</span>
-            <h2 class="section-head__title">What I do<br /><em class="serif">ridiculously well</em></h2>
+          <div class="services-cinema" id="servicesCinema">
+            <div class="services-cinema__media-stage">
+              <div class="services-cinema__media" id="servicesMedia" aria-hidden="true">
+                <img class="services-cinema__image is-active" data-service-image src="/services/services-intro.jpg" alt="" loading="eager" decoding="async" />
+                <img class="services-cinema__image" data-service-image src="/services/services-lead.jpg" alt="" loading="lazy" decoding="async" />
+                <img class="services-cinema__image" data-service-image src="/services/services-email.jpg" alt="" loading="lazy" decoding="async" />
+                <img class="services-cinema__image" data-service-image src="/services/services-appointments.jpg" alt="" loading="lazy" decoding="async" />
+                <img class="services-cinema__image" data-service-image src="/services/services-crm.jpg" alt="" loading="lazy" decoding="async" />
+                <span class="services-cinema__shade" id="servicesShade"></span>
+              </div>
+              <div class="services-cinema__intro" id="servicesIntroTitle">
+                <div class="section-head section-head--services-cinema">
+                  <span class="section-head__num">03</span>
+                  <h2 class="section-head__title">What I do<br /><em class="serif">ridiculously well</em></h2>
+                </div>
+                <p class="service-beat__eyebrow">Outbound operations</p>
+                <p class="service-beat__intro-copy">Research, inboxes, replies, and CRM notes moving as one system.</p>
+              </div>
+            </div>
+            <div class="services-cinema__panels" id="servicesPanels">
+              <section class="service-beat service-beat--intro" data-service-beat="0">
+                <div class="service-beat__intro"></div>
+              </section>
+              <!-- Service beats (01–04) are rendered from src/services.js -->
+            </div>
           </div>
-          <ul class="services__list">
-            <li class="service" data-service>
-              <div class="service__row" data-cursor="hover">
-                <span class="service__index">01</span>
-                <h3 class="service__name">Lead Generation</h3>
-                <p class="service__tag">B2B Prospecting</p>
-                <span class="service__arrow" aria-hidden="true">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </span>
-              </div>
-              <div class="service__body">
-                <p>Laser-targeted prospect lists built with Apollo, Clay and LinkedIn Sales Navigator — verified, enriched and matched to your exact ICP across the US, UK, Australia and Canada.</p>
-              </div>
-            </li>
-            <li class="service" data-service>
-              <div class="service__row" data-cursor="hover">
-                <span class="service__index">02</span>
-                <h3 class="service__name">Cold Email Campaigns</h3>
-                <p class="service__tag">Outbound that lands</p>
-                <span class="service__arrow" aria-hidden="true">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </span>
-              </div>
-              <div class="service__body">
-                <p>Personalized sequences in Instantly and Smartlead, with inbox warm-up, list hygiene via Verimail, and copy that gets replies — consistently hitting 95%+ deliverability.</p>
-              </div>
-            </li>
-            <li class="service" data-service>
-              <div class="service__row" data-cursor="hover">
-                <span class="service__index">03</span>
-                <h3 class="service__name">Appointment Setting</h3>
-                <p class="service__tag">Calendar, filled</p>
-                <span class="service__arrow" aria-hidden="true">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </span>
-              </div>
-              <div class="service__body">
-                <p>From first touch to confirmed booking — qualification, follow-ups, reminders and rescheduling handled. 20–40 qualified sales appointments landed on your calendar every month.</p>
-              </div>
-            </li>
-            <li class="service" data-service>
-              <div class="service__row" data-cursor="hover">
-                <span class="service__index">04</span>
-                <h3 class="service__name">CRM Management</h3>
-                <p class="service__tag">HubSpot · GoHighLevel · Salesforce</p>
-                <span class="service__arrow" aria-hidden="true">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </span>
-              </div>
-              <div class="service__body">
-                <p>15,000+ contacts kept clean, segmented and pipeline-ready in HubSpot, GoHighLevel, Salesforce and Zoho — so every deal has a next step and nothing slips through.</p>
-              </div>
-            </li>
-          </ul>
         </section>
 
         <!-- ======= PROCESS (pinned horizontal) ======= -->
@@ -395,14 +363,14 @@
                 </picture>
                 <img
                   class="pipeline-media__portrait"
-                  src="/cleofe.png"
-                  alt="Cleofe Torres Acot"
+                  src="/cleofe-in-chair.jpg"
+                  alt="Cleofe Torres Acot, virtual sales development representative, seated in her office chair reviewing outbound lead-generation campaigns"
                   decoding="async"
                 />
                 <img
                   class="pipeline-media__landscape-final"
-                  src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=2400&h=1350&q=80"
-                  alt="Cleofe Acot working with clients"
+                  src="/working-top.jpg"
+                  alt="Overhead view of Cleofe Acot's desk with laptop and planner while managing outbound prospecting and client outreach"
                   decoding="async"
                 />
                 <span class="pipeline-media__shade" id="pipelineShade"></span>
@@ -479,7 +447,10 @@
                 </div>
               </div>
             </div>
-            <ol class="journey__list" id="journeyList"></ol>
+            <div class="journey__rail">
+              <span class="journey__orb" aria-hidden="true"></span>
+              <ol class="journey__list" id="journeyList"></ol>
+            </div>
           </div>
         </section>
 

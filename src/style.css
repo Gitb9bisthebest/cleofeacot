@@ -164,20 +164,19 @@ a:focus-visible, button:focus-visible {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
-.nav__logo { display: flex; align-items: center; gap: 0.6rem; }
+.nav__logo { display: flex; align-items: center; gap: 0.65rem; color: var(--ink); }
 .nav__logo-mark {
-  display: grid; place-items: center;
-  width: 34px; height: 34px; border-radius: 50%;
-  background: var(--accent); color: var(--accent-ink);
-  font-family: var(--font-display); font-weight: 800; font-size: 0.85rem;
+  display: grid; place-items: center; flex: none;
+  transition: transform 0.4s var(--ease-out);
 }
-.nav__logo-text {
-  font-family: var(--font-display); font-weight: 600;
-  font-size: 0.9rem; letter-spacing: 0.02em;
+.nav__logo-mark svg { display: block; }
+.nav__logo:hover .nav__logo-mark { transform: rotate(-8deg); }
+.nav__logo-word {
+  font-family: var(--font-serif);
+  font-size: 1.6rem; line-height: 1;
+  letter-spacing: 0.005em; white-space: nowrap;
 }
-.nav__logo-text em {
-  font-style: normal; color: var(--ink-dim); font-size: 0.7rem; margin-left: 0.4rem;
-}
+.nav__logo-word em { font-style: italic; }
 .nav__links { display: flex; gap: 1.75rem; }
 .nav__links a {
   font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase;

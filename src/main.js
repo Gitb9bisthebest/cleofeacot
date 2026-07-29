@@ -318,10 +318,13 @@ function runIntro() {
     .from('.radial__hub', {
       autoAlpha: 0, scale: 0.82, duration: 0.55, ease: 'back.out(1.5)', clearProps: 'all',
     }, '-=0.2')
-    .add(drawConnectors(), '-=0.25')
+    // Cards reveal alongside the hub so the lines draw toward modules that are
+    // already present — snappy stagger keeps them from trailing the diagram.
     .from('.rmodule__card', {
-      autoAlpha: 0, y: 14, duration: 0.45, stagger: 0.07, ease: 'power3.out', clearProps: 'all',
-    }, '-=0.55')
+      autoAlpha: 0, y: 12, scale: 0.96,
+      duration: 0.4, stagger: 0.045, ease: 'power3.out', clearProps: 'all',
+    }, '-=0.35')
+    .add(drawConnectors(), '-=0.2')
     .call(() => { startSignals(); highlightMeetings(); })
     .from('.nav', {
       yPercent: -120, duration: 0.6, ease: 'power3.out',
@@ -524,17 +527,13 @@ gsap.utils.toArray('[data-stat]').forEach((stat, i) => {
 // hovering a row pauses only that row. Edge fading comes from a CSS mask.
 const tRows = document.querySelectorAll('[data-trow]');
 if (tRows.length) {
-  const initials = (name) => name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
   const cardHTML = (t) => `
     <article class="tcard">
-      <header class="tcard__head">
-        <span class="tcard__avatar" aria-hidden="true">${initials(t.name)}</span>
-        <div>
-          <strong class="tcard__name">${t.name}</strong>
-          <span class="tcard__handle">${t.handle}</span>
-        </div>
-      </header>
       <p class="tcard__quote">“${t.quote}”</p>
+      <footer class="tcard__foot">
+        <strong class="tcard__name">${t.name}</strong>
+        <span class="tcard__handle">${t.handle}</span>
+      </footer>
     </article>`;
 
   tRows.forEach((row, ri) => {

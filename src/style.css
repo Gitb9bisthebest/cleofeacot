@@ -541,8 +541,10 @@ a:focus-visible, button:focus-visible {
 }
 .tmarquee {
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(to right, transparent, black 14%, black 86%, transparent);
-  mask-image: linear-gradient(to right, transparent, black 14%, black 86%, transparent);
+  container-type: inline-size;
+  /* Fade the quarter-card peeking in on each edge. */
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 }
 .tmarquee__track {
   display: flex; gap: 1.1rem;
@@ -551,7 +553,9 @@ a:focus-visible, button:focus-visible {
   will-change: transform;
 }
 .tcard {
-  width: 340px;
+  /* Show 4 full cards + a quarter-card peek on each side (4.5 slots across the
+     row), so the count stays consistent from laptop to ultra-wide monitors. */
+  width: calc(100cqw / 4.5 - 1.1rem);
   flex-shrink: 0;
   padding: 1.1rem 1.25rem 1.2rem;
   border: 1px solid var(--border);
@@ -564,23 +568,17 @@ a:focus-visible, button:focus-visible {
   border-color: rgba(214, 51, 108, 0.35);
   box-shadow: 0 12px 28px rgba(214, 51, 108, 0.1);
 }
-.tcard__head { display: flex; align-items: center; gap: 0.7rem; }
-.tcard__avatar {
-  display: grid; place-items: center;
-  width: 42px; height: 42px;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-family: var(--font-display); font-weight: 750; font-size: 0.85rem;
-  letter-spacing: 0.02em;
-}
-.tcard__name { display: block; font-size: 0.92rem; font-weight: 600; line-height: 1.25; }
-.tcard__handle { display: block; font-size: 0.75rem; color: var(--accent); }
 .tcard__quote {
-  margin-top: 0.7rem;
   font-size: 0.88rem; line-height: 1.55;
   color: var(--ink-dim);
 }
+.tcard__foot {
+  margin-top: 0.9rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+.tcard__name { display: block; font-size: 0.92rem; font-weight: 600; line-height: 1.25; }
+.tcard__handle { display: block; font-size: 0.75rem; color: var(--accent); }
 @media (max-width: 720px) {
   .tcard { width: 280px; }
 }
